@@ -11,6 +11,8 @@ Rails.application.routes.draw do
       resources :books, only: [:index, :show, :create, :update, :destroy]
       resources :users, param: :_username
 
+      get '/search', to: 'books#search'
+
       post '/auth/login', to: 'authentications#login'
     end
   end

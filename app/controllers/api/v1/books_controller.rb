@@ -3,7 +3,30 @@ require 'csv'
 module Api
   module V1
     class BooksController < ApplicationController
-      before_action :authenticate_request!, only: [:show, :create, :update, :destroy]
+      before_action :authenticate_request!, only: [:show, :create, :update, :destroy, :search]
+
+
+      def search
+        # The `search` function returns all books in JSON format.
+        books = Book.where("title LIKE ?", "%#{params[:q]}%").limit(limit).offset(params[:offset])
+
+        # render json: BooksRepresenter.new(books).to_json
+
+        render json: {
+          books: books.map do |book|
+            {
+              id: book.id,
+              title: book.title,
+              picture: book.picture,
+              author_name: book.author.name,
+              author_age: book.author.age
+          } end,
+          total: Book.where("title LIKE ?", "%#{params[:q]}%").count,
+          limit: limit,
+          offset: params[:offset]
+        }
+
+      end
 
       def index
         # The `index` function returns all books in JSON format.
@@ -70,7 +93,17 @@ module Api
 
       def update
         Book.find(params[:id]).update!(book_params)
-        head :no_content
+        book = Book.find(params[:id])
+        render json:{
+          message: "Book updated successfully",
+          data: {
+            id: book.id,
+            title: book.title,
+            picture: book.picture,
+            author_name: book.author.name,
+            author_age: book.author.age
+          }
+        }
       end
 
       def destroy
